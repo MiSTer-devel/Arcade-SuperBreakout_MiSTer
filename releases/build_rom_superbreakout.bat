@@ -1,8 +1,8 @@
 @echo off
 
-set    zip=sprint1.zip
-set ifiles=6290-01.b1+6291-01.c1+6442-01.d1+6443-01.e1+6396-01.p4+6397-01.r4+6398-01.k6+6399-01.j6+6400-01.m2+6401-01.e2
-set  ofile=a.sprint1.rom
+set zip=sbrkout.zip
+set ifiles=033453.c1+033454.d1+033455.e1+033455.e1+033280.p4+033281.r4+006400.m2+006401.e2
+set ofile=a.sbrkout.rom
 
 rem =====================================
 setlocal ENABLEDELAYEDEXPANSION
