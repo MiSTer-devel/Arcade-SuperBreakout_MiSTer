@@ -1,0 +1,20 @@
+<misterromdescription>
+	<name>Super Breakout (rev 04)</name>
+	<mameversion>0216</mameversion>
+	<setname>sbrkout</setname>
+	<mratimestamp>201911270000</mratimestamp>
+	<year>1978</year>
+	<manufacturer>Atari</manufacturer>
+	<category>Platform / Breakout</category>
+	<rbf>superbreakout</rbf>
+	<rom index="0" zip="sbrkout.zip" md5="b80592e3c65a8c88bd48960d56c3e985" type="merged|nonmerged">
+		<part name="033453.c1"/>
+		<part name="033454.d1"/>
+		<part name="033455.e1"/>
+		<part name="033455.e1"/>
+		<part name="033280.p4"/>
+		<part name="033281.r4"/>
+		<part name="006400.m2"/>
+		<part name="006401.e2"/>
+	</rom>
+</misterromdescription>

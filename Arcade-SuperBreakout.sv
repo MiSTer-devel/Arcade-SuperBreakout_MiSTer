@@ -16,7 +16,7 @@ module emu
 	input         RESET,
 
 	//Must be passed to hps_io module
-	inout  [44:0] HPS_BUS,
+	inout  [45:0] HPS_BUS,
 
 	//Base video clock. Usually equals to CLK_SYS.
 	output        VGA_CLK,
@@ -31,6 +31,7 @@ module emu
 	output        VGA_HS,
 	output        VGA_VS,
 	output        VGA_DE,    // = ~(VBlank | HBlank)
+	output        VGA_F1,
 
 	//Base video clock. Usually equals to CLK_SYS.
 	output        HDMI_CLK,
@@ -61,13 +62,23 @@ module emu
 
 	output [15:0] AUDIO_L,
 	output [15:0] AUDIO_R,
-	output        AUDIO_S    // 1 - signed audio samples, 0 - unsigned
+	output        AUDIO_S,   // 1 - signed audio samples, 0 - unsigned
+
+	// Open-drain User port.
+	// 0 - D+/RX
+	// 1 - D-/TX
+	// 2..6 - USR2..USR6
+	// Set USER_OUT to 1 to read from USER_IN.
+	input   [6:0] USER_IN,
+	output  [6:0] USER_OUT
 );
 
 
 
 
 
+assign VGA_F1    = 0;
+assign USER_OUT  = '1;
 assign LED_DISK  = lamp1;
 assign LED_POWER = lamp2;
 assign LED_USER  = ioctl_download;
@@ -108,6 +119,7 @@ wire [15:0] joystick_0, joystick_1;
 wire [15:0] joy0 =  joystick_0;
 wire [15:0] joy1 =  joystick_1;
 
+wire [21:0] gamma_bus;
 
 hps_io #(.STRLEN(($size(CONF_STR)>>3) )/*, .PS2DIV(1000), .WIDE(0)*/) hps_io
 (
@@ -121,6 +133,7 @@ hps_io #(.STRLEN(($size(CONF_STR)>>3) )/*, .PS2DIV(1000), .WIDE(0)*/) hps_io
 
 	.status(status),
 	.forced_scandoubler(forced_scandoubler),
+	.gamma_bus(gamma_bus),
 
 	.ioctl_download(ioctl_download),
 	.ioctl_wr(ioctl_wr),
@@ -195,8 +208,8 @@ wire m_right_2  	=  btn_right_2| joy1[0];
 wire m_select_2		=  joy1[5];
 
 
-wire m_start1 = btn_one_player  | joy0[8] | joy1[8];
-wire m_start2 = btn_two_players | joy0[9] | joy1[9];
+wire m_start1 = btn_one_player  | joy0[6] | joy1[6];
+wire m_start2 = btn_two_players | joy0[7] | joy1[7];
 wire m_coin   = m_start1 | m_start2;
 
 
@@ -254,7 +267,6 @@ wire videowht;
 wire lamp1,lamp2;
 
 super_breakout super_breakout(
-	.Clk_50_I(CLK_50M),
 	.Reset_n(~(RESET | status[0] | buttons[1] | ioctl_download)),
 
 	.dn_addr(ioctl_addr[16:0]),
@@ -289,6 +301,7 @@ super_breakout super_breakout(
 	.SW1_I(SW1)
 	);
 			
+			
 wire [7:0] audio1;
 wire [1:0] video;
 wire [3:0] videor;
@@ -305,7 +318,6 @@ assign hblank=hbl0;
 assign vblank=vbl0;
 
 
-
 assign HDMI_ARX = status[1] ? 8'd16 : status[2] ? 8'd4 : 8'd3;
 assign HDMI_ARY = status[1] ? 8'd9  : status[2] ? 8'd3 : 8'd4;
 
@@ -316,42 +328,14 @@ assign r={videowht,videowht,videowht};
 assign g={videowht,videowht,videowht};
 assign b={videowht,videowht};
 
-/*
-reg ce_pix;
-always @(posedge clk_48) begin
-        reg old_clk;
-
-        old_clk <= clk_12;
-        ce_pix <= old_clk & ~clk_12;
-end
-
-
-arcade_rotate_fx #(256,224,8) arcade_video
-(
-	.*,
-
-	.clk_video(clk_48),
-	//.ce_pix(clk_12ce_vid),
-
-	.RGB_in({r,g,b}),
-	.HBlank(hblank),
-	.VBlank(vblank),
-	.HSync(hs),
-	.VSync(vs),
-	
-	.fx(status[5:3]),
-	.no_rotate(status[2])
-);
-
-*/
-
 reg ce_pix;
 always @(posedge clk_24) begin
-        reg old_clk;
+        reg [1:0] div;
 
-        old_clk <= CLK_VIDEO_2;
-        ce_pix <= old_clk & ~CLK_VIDEO_2;
+        div <= div + 1'd1;
+        ce_pix <= !div;
 end
+
 
 // not sure if 298 is quite right
 //arcade_rotate_fx #(256,224,8,1) arcade_video

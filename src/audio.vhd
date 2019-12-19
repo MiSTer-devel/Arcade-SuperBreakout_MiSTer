@@ -22,7 +22,6 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity audio is 
 port(		
-			Clk_50		: in	std_logic;
 			Reset_n		: in	std_logic;
 			Tones_n		: in	std_logic;
 			Display		: in	std_logic_vector(3 downto 0);
@@ -66,15 +65,6 @@ tone_V32 <= tone_reg(3) and V32;
 
 audio_pwm <= tone_V4 & '0' & tone_V8 & '0' & tone_V16 & '0' & tone_V32 & '0';
 
---DAC: entity work.deltasigma
---generic map(
---width => 8
---)
---port map(
---	inval => sounds,
---	output => audio_pwm,
---	clk => clk_50,
---	reset => reset
---	);
+
 
 end rtl;

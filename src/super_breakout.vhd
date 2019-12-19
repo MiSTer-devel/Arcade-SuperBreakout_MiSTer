@@ -21,7 +21,6 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity super_breakout is 
 port(		
-			Clk_50_I		: in	std_logic;	-- 50MHz input clock
 			Reset_n		: in	std_logic;	-- Reset (Active low)
 			Coin1_I		: in	std_logic;	-- Coin switches 
 			Coin2_I		: in 	std_logic;
@@ -73,7 +72,6 @@ architecture rtl of super_breakout is
 signal clk_6			: std_logic;
 signal phi2				: std_logic;
 
-signal reset_h			: std_logic;
 
 signal NMI_n			: std_logic;
 signal Timer_Reset_n	: std_logic;
@@ -190,7 +188,7 @@ CompSync_O <= CompSync_n_s;
 -- r 3  g 3  b 2
 -- https://github.com/mamedev/mame/blob/master/src/mame/layout/sbrkout.lay
 
-process (hcolor,Playfield_n , Ball1_n , Ball2_n , Ball3_n)
+process (hcolor,Playfield_n , Ball1_n , Ball2_n , Ball3_n,hcount,Video)
 begin
 Video <=  not(Playfield_n and Ball1_n and Ball2_n and Ball3_n);
 -- check for the wrap around (126)
@@ -301,7 +299,6 @@ end process;
 --end if;
 --end process;
 
-Reset_h <= (not Reset_n); -- Some components need an active-high reset
 Vblank_O <= Vblank; -- Resets ramp in analog paddle circuit (if used)
 
 -- PLL to generate 12.096 MHz master clock
@@ -368,7 +365,6 @@ port map(
 
 Sounds: entity work.audio
 port map(
-		Clk_50 => Clk_50_i,
 		Reset_n => Reset_n,
 		Tones_n => Tones_n,
 		Display => Display(3 downto 0),

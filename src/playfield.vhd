@@ -125,7 +125,7 @@ port map
 
 
 -- 74LS166 video shift register	
-R3: process(clk6, P3_3, VBlank_n_s, char_data)
+R3: process(clk6, P3_3, VBlank_n_s, char_data,shift_data)
 begin
 	if VBlank_n_s = '0' then -- Connected Clear input
 		shift_data <= (others => '0');
