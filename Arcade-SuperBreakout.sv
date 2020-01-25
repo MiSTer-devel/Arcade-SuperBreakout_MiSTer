@@ -87,8 +87,8 @@ assign LED_USER  = ioctl_download;
 localparam CONF_STR = {
 	"A.SBRKOUT;;",
 	"-;",
-	"O1,Aspect Ratio,Original,Wide;",
-	"O2,Orientation,Vert,Horz;",
+	"H0O1,Aspect Ratio,Original,Wide;",
+	"H0O2,Orientation,Vert,Horz;",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",  
 	"-;",
 	"OAB,Language,English,German,French,Spanish;",
@@ -98,7 +98,8 @@ localparam CONF_STR = {
 	"OE,Color,On,Off;",
 	"-;",
 	"R0,Reset;",
-	"J1,Release,Select,Start 1P,Start 2P;",
+	"J1,Release,Select,Start 1P,Start 2P,Coin;",
+	"jn,A,X,Start,Select,R;",
 	"V,v",`BUILD_DATE
 };
 
@@ -106,6 +107,8 @@ localparam CONF_STR = {
 wire [31:0] status;
 wire  [1:0] buttons;
 wire        forced_scandoubler;
+wire        direct_video;
+
 
 wire        ioctl_download;
 wire        ioctl_wr;
@@ -129,11 +132,13 @@ hps_io #(.STRLEN(($size(CONF_STR)>>3) )/*, .PS2DIV(1000), .WIDE(0)*/) hps_io
 	.conf_str(CONF_STR),
 	.joystick_0(joystick_0),
 	.joystick_1(joystick_1),
-	.buttons(buttons),
 
-	.status(status),
-	.forced_scandoubler(forced_scandoubler),
-	.gamma_bus(gamma_bus),
+        .buttons(buttons),
+        .status(status),
+        .status_menumask(direct_video),
+        .forced_scandoubler(forced_scandoubler),
+        .gamma_bus(gamma_bus),
+        .direct_video(direct_video),
 
 	.ioctl_download(ioctl_download),
 	.ioctl_wr(ioctl_wr),
@@ -157,11 +162,11 @@ always @(posedge clk_sys) begin
 //			'hX72: btn_down        <= pressed; // down
 			'hX6B: btn_left        <= pressed; // left
 			'hX74: btn_right       <= pressed; // right
-			'h029: btn_serve         <= pressed; // space
-			'h014: btn_serve         <= pressed; // ctrl
+			'h029: btn_serve       <= pressed; // space
+			'h014: btn_serve       <= pressed; // ctrl
 
-			'h005: btn_one_player  <= pressed; // F1
-			'h006: btn_two_players <= pressed; // F2
+			'h005: btn_start_1     <= pressed; // F1
+			'h006: btn_start_2     <= pressed; // F2
 			
 			// JPAC/IPAC/MAME Style Codes
 			'h016: btn_start_1     <= pressed; // 1
@@ -197,20 +202,20 @@ reg btn_right_2=0;
 reg btn_serve_2=0;
 
 
-wire m_left			=  btn_left  | joy0[1];
-wire m_right		=  btn_right | joy0[0];
-wire m_serve			= btn_serve_2|btn_serve| joy0[4]|joy1[4];
-wire m_select		=  joy0[5];
+wire m_left	=  btn_left  | joy0[1];
+wire m_right	=  btn_right | joy0[0];
+wire m_serve	=  btn_serve_2|btn_serve| joy0[4]|joy1[4];
+wire m_select	=  joy0[5];
 
 
-wire m_left_2   	=	btn_left_2|joy1[1];
-wire m_right_2  	=  btn_right_2| joy1[0];
-wire m_select_2		=  joy1[5];
+wire m_left_2	=  btn_left_2|joy1[1];
+wire m_right_2	=  btn_right_2| joy1[0];
+wire m_select_2	=  joy1[5];
 
 
-wire m_start1 = btn_one_player  | joy0[6] | joy1[6];
-wire m_start2 = btn_two_players | joy0[7] | joy1[7];
-wire m_coin   = m_start1 | m_start2;
+wire m_start1 = btn_start_1 | joy0[6] | joy1[6];
+wire m_start2 = btn_start_2 | joy0[7] | joy1[7];
+wire m_coin   = btn_coin_1  | joy0[8] | joy1[8];
 
 
 
@@ -277,11 +282,11 @@ super_breakout super_breakout(
 	.Video_RGB(videorgb),
 
 	.Audio_O(audio1),
-	.Coin1_I(~(m_coin|btn_coin_1)),
-	.Coin2_I(~(m_coin|btn_coin_2)),
+	.Coin1_I(~(m_coin)),
+	.Coin2_I(~(btn_coin_2)),
 	
-	.Start1_I(~(m_start1 | btn_start_1)),
-	.Start2_I(~(m_start2 | btn_start_2)),
+	.Start1_I(~(m_start1 )),
+	.Start2_I(~(m_start2 )),
 	
 	.Serve_I(~m_serve),
 	.Select1_I(~m_select),
@@ -329,32 +334,29 @@ assign g={videowht,videowht,videowht};
 assign b={videowht,videowht};
 
 reg ce_pix;
-always @(posedge clk_24) begin
-        reg [1:0] div;
+always @(posedge clk_48) begin
+        reg [2:0] div;
 
         div <= div + 1'd1;
         ce_pix <= !div;
 end
 
+wire no_rotate = status[2] | direct_video;
 
-// not sure if 298 is quite right
-//arcade_rotate_fx #(256,224,8,1) arcade_video
-//arcade_rotate_fx #(298,224,8,1) arcade_video
-arcade_rotate_fx #(320,240,8,1) arcade_video
+arcade_video #(320,240,8) arcade_video
 (
 	.*,
 
-	.clk_video(clk_24),
-	//.ce_pix(CLK_VIDEO_2),
+	.clk_video(clk_48),
 	.RGB_in(~status[14]?videorgb:{r,g,b}),
 //	.RGB_in({r,g,b}),
 	.HBlank(hblank),
 	.VBlank(vblank),
 	.HSync(hs),
 	.VSync(vs),
+	.rotate_ccw(1),
 	
 	.fx(status[5:3]),
-	.no_rotate(status[2])
 );
 
 
