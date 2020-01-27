@@ -96,6 +96,7 @@ localparam CONF_STR = {
 	"O68,Bonus,200,400,600,900,1200,1600,2000,None;",
 	"OD,Test,Off,On;",
 	"OE,Color,On,Off;",
+	"OFG,Level,Progresive,Cavity,Double;",
 	"-;",
 	"R0,Reset;",
 	"J1,Release,Select,Start 1P,Start 2P;",
@@ -199,13 +200,13 @@ reg btn_serve_2=0;
 
 wire m_left			=  btn_left  | joy0[1];
 wire m_right		=  btn_right | joy0[0];
-wire m_serve			= btn_serve_2|btn_serve| joy0[4]|joy1[4];
-wire m_select		=  joy0[5];
+wire m_serve		=  btn_serve_2|btn_serve| joy0[4]|joy1[4] | ~USER_IN[3];
+wire m_select		=  status[15] & !status[16] | joy0[5]; //Select level Double
 
 
 wire m_left_2   	=	btn_left_2|joy1[1];
 wire m_right_2  	=  btn_right_2| joy1[0];
-wire m_select_2		=  joy1[5];
+wire m_select_2  	=  status[16] & !status[15] | joy1[5]; //Select level Progresive
 
 
 wire m_start1 = btn_one_player  | joy0[6] | joy1[6];
@@ -257,7 +258,17 @@ joy2quad steerjoy2quad1
 	.steer(steer1)
 );
 
+reg use_io = 0; // 1 - use encoder on USER_IN[1:0] pins
+always @(posedge clk_12) begin
+reg [1:0] old_io;
+reg [1:0] old_steer;
 
+	old_io <= USER_IN[1:0];
+	if(old_io != USER_IN[1:0]) use_io <= 1;
+	
+	old_steer <= steer0;
+	if(old_steer != steer0) use_io <= 0;
+end
 
 /*			Pot_Comp1_I	: in  std_logic;	-- If you want to use a pot instead, this goes to the output of the comparator
 			Serve_LED_O	: out std_logic;	-- Serve button LED (Active low)
@@ -288,8 +299,8 @@ super_breakout super_breakout(
 	.Select2_I(~m_select_2),
 	.Slam_I(1),
 	.Test_I	(~status[13]),
-	.Enc_A(steer0[1]),
-	.Enc_B(steer0[0]),
+	.Enc_A(use_io ? USER_IN[1] : steer0[1]),
+	.Enc_B(use_io ? USER_IN[0] : steer0[0]),
 	.Lamp1_O(lamp1),
 	.Lamp2_O(lamp2),
 	.hs_O(hs),
