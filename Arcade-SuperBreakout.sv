@@ -103,6 +103,8 @@ localparam CONF_STR = {
 	"H0O2,Orientation,Vert,Horz;",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",  
 	"-;",
+	"OH,Control,Buttons,Paddle;",
+	"-;",
 	"OAB,Language,English,German,French,Spanish;",
 	"OC,Balls,3,5;",
 	"O68,Bonus,200,400,600,900,1200,1600,2000,None;",
@@ -133,6 +135,7 @@ wire [10:0] ps2_key;
 
 wire [15:0] joystick_0, joystick_1;
 wire [15:0] joy = joystick_0 | joystick_1;
+wire  [7:0] joya;
 
 wire [21:0] gamma_bus;
 
@@ -144,6 +147,8 @@ hps_io #(.STRLEN(($size(CONF_STR)>>3) )) hps_io
 	.conf_str(CONF_STR),
 	.joystick_0(joystick_0),
 	.joystick_1(joystick_1),
+
+	.joystick_analog_0(joya),
 
 	.buttons(buttons),
 	.status(status),
@@ -240,7 +245,7 @@ joy2quad steerjoy2quad0
 	
 	.right(m_right),
 	.left(m_left),
-	
+
 	.steer(steer0)
 );
 
@@ -287,6 +292,7 @@ super_breakout super_breakout(
 	.Test_I	(~status[15]),
 	.Enc_A(use_io ? USER_IN[1] : steer0[1]),
 	.Enc_B(use_io ? USER_IN[0] : steer0[0]),
+	.Paddle(status[17] ? (joya ^ 8'h80) : 8'h00),
 	.Lamp1_O(),
 	.Lamp2_O(),
 	.hs_O(hs),

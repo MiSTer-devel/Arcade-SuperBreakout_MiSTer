@@ -33,6 +33,7 @@ port(
 			Slam_I		: in	std_logic;	-- Slam switch
 			Enc_A			: in  std_logic;	-- Rotary encoder, used in place of a pot to control the paddle
 			Enc_B			: in  std_logic;
+			Paddle		: in  std_logic_vector(7 downto 0);
 			Pot_Comp1_I	: in  std_logic;	-- If you want to use a pot instead, this goes to the output of the comparator
 			VBlank_O		: out std_logic;  -- VBlank signal to reset the ramp genrator used by the pot reading circuitry
 			Lamp1_O		: out	std_logic;	-- Player start button lamps (Active high to control incandescent lamps via SCR or transistors)
@@ -299,10 +300,6 @@ end process;
 --end if;
 --end process;
 
-Vblank_O <= Vblank; -- Resets ramp in analog paddle circuit (if used)
-
--- PLL to generate 12.096 MHz master clock
-
 		
 Vid_sync: entity work.synchronizer
 port map(
@@ -377,6 +374,7 @@ port map(
 		Clk6 => Clk_6,
 		Enc_A => Enc_A,
 		Enc_B => Enc_B,
+		Ana => Paddle,
 		Mask1_n => Mask1_n,
 		Mask2_n => Mask2_n,
 		Vblank => Vblank,

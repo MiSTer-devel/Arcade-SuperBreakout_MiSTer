@@ -20,13 +20,14 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
+use IEEE.numeric_std.ALL;
 
 entity paddle is 
 port(		
 			CLK6			: in  std_logic; 
 			Enc_A			: in  std_logic;
 			Enc_B			: in  std_logic;
+			Ana         : in  std_logic_vector(7 downto 0);
 			Mask1_n			: in	std_logic;
 			Mask2_n			: in  std_logic;
 			Vblank			: in	std_logic;
@@ -79,8 +80,7 @@ sense2_int <= '1';
 
 -- If the pulse from the ramp comparator comes too soon after Vblank the paddle interrupt is triggered too 
 -- early and this causes problems so make the minimum position 500. 
-pad_pos <= (position + 500);
-
+pad_pos <= (position + 500) when ana = x"00" else (250 + to_integer(unsigned(Ana&"000")));
 
 -- Interface for the quadrature encoder. The optical encoder used in the prototype has a very high resolution, it 
 -- will be necessary to adjust values for other encoders
