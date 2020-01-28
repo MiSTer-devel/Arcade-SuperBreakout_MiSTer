@@ -31,7 +31,6 @@ end audio;
 
 architecture rtl of audio is
 
-signal reset		: std_logic;
 signal V32				: std_logic;
 signal V16				: std_logic;
 signal V8				: std_logic;
@@ -43,8 +42,6 @@ signal tone_V32	: std_logic;
 signal tone_reg 	: std_logic_vector(3 downto 0);
 signal sounds 		: std_logic_vector(7 downto 0);
 begin
-
-reset <= (not reset_n);
 
 V32 <= Vcount(5);
 V16 <= Vcount(4);

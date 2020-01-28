@@ -84,43 +84,30 @@ char_addr <= display(5 downto 0) & V4 & V2 & V1;
 
 
 -- Background character PROMs, these are each 4 bits wide
---P4: entity work.Char_LSB
---port map(
---	clock => clk6,
---	Address => char_addr,
---	q => char_data(7 downto 4) 
---	);
-	
---R4: entity work.Char_MSB
---port map(
---	clock => clk6,
---	Address => char_addr,
---	q => char_data(3 downto 0) 
---	);
-R4 : work.dpram generic map (9,8)
+R4 : work.dpram generic map (9,4)
 port map
 (
 	clock_a   => clk12,
 	wren_a    => dn_wr and rom_MSB_cs,
 	address_a => dn_addr(8 downto 0),
-	data_a    => dn_data,
+	data_a    => dn_data(3 downto 0),
 
 	clock_b   => clk6,
 	address_b => char_addr,
-	q_b(3 downto 0)       => char_data(3 downto 0) 
+	q_b       => char_data(3 downto 0) 
 );
 
-P4 : work.dpram generic map (9,8)
+P4 : work.dpram generic map (9,4)
 port map
 (
 	clock_a   => clk12,
 	wren_a    => dn_wr and rom_LSB_cs,
 	address_a => dn_addr(8 downto 0),
-	data_a    => dn_data,
+	data_a    => dn_data(3 downto 0),
 
 	clock_b   => clk6,
 	address_b => char_addr,
-	q_b(3 downto 0)       => char_data(7 downto 4) 
+	q_b       => char_data(7 downto 4) 
 );
 
 

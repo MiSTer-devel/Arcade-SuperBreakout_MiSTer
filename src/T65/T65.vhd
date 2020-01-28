@@ -254,7 +254,7 @@ begin
 			if (really_rdy = '1') then
 				R_W_n_i <= not Write or RstCycle;
 
-				D <= (others => '1');   -- Dummy
+				--D <= (others => '1');   -- Dummy
 				PBR <= (others => '1'); -- Dummy
 				DBR <= (others => '1'); -- Dummy
 				EF_i <= '0';    -- Dummy

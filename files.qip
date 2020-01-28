@@ -1,6 +1,5 @@
-set_global_assignment -name SYSTEMVERILOG_FILE "Arcade-SuperBreakout.sv"
+set_global_assignment -name QIP_FILE src/altera/ram1k_dp.qip
 set_global_assignment -name VHDL_FILE src/sync.vhd
-set_global_assignment -name VHDL_FILE src/super_breakout.vhd
 set_global_assignment -name VHDL_FILE src/quadrature_decoder.vhd
 set_global_assignment -name VHDL_FILE src/playfield.vhd
 set_global_assignment -name VHDL_FILE src/paddle_analog.vhd
@@ -17,4 +16,5 @@ set_global_assignment -name VHDL_FILE src/T65/T65_Pack.vhd
 set_global_assignment -name VHDL_FILE src/T65/T65_MCode.vhd
 set_global_assignment -name VHDL_FILE src/T65/T65_ALU.vhd
 set_global_assignment -name VHDL_FILE src/T65/T65.vhd
-set_global_assignment -name QIP_FILE src/altera/ram1k_dp.qip
+set_global_assignment -name VHDL_FILE src/super_breakout.vhd
+set_global_assignment -name SYSTEMVERILOG_FILE "Arcade-SuperBreakout.sv"

@@ -42,7 +42,7 @@ port(
 
 			Audio_O		: out std_logic_vector(7 downto 0);	-- PWM audio, low pass filter is desirable but not really necessary for the simple SFX in this game
 			Video_O		: out std_logic;	-- Video output, sum this through a 470R resistor to composite video
-			Video_RGB	: out std_logic_vector(7 downto 0);
+			Video_RGB	: out std_logic_vector(8 downto 0);
 			CompSync_O	: out std_logic; -- Composite sync, sum this through a 1k resistor to composite video
 			SW1_I			: in std_logic_vector(7 downto 0);
 			
@@ -194,44 +194,44 @@ Video <=  not(Playfield_n and Ball1_n and Ball2_n and Ball3_n);
 -- check for the wrap around (126)
 if  ((unsigned(hcolor)  >=121 ) and (unsigned(hcolor) <=128) and (hcount(8)='0')) then
         if (Video='1') then
-                Video_RGB  <=  "01001011";
+                Video_RGB  <=  "010010111";
         else
-                Video_RGB  <=  "00000000";
+                Video_RGB  <=  "000000000";
         end if;
 -- Blue Bar / Top
 elsif ( (unsigned(hcolor) >=0 ) and (unsigned(hcolor) <= 33) ) then
         if (Video='1') then
-                Video_RGB  <=  "01001011";
+                Video_RGB  <=  "010010111";
         else
-                Video_RGB  <=  "00000000";
+                Video_RGB  <=  "000000000";
         end if;
 -- Orange Bar
 elsif  (( unsigned(hcolor)  >=34 ) and (unsigned(hcolor) <=65)) then
         if (Video='1') then
-                Video_RGB  <=  "11110000";
+                Video_RGB  <=  "111100000";
         else
-                Video_RGB  <=  "00000000";
+                Video_RGB  <=  "000000000";
         end if;
 -- Green Bar
 elsif  (( unsigned(hcolor)  >=66 ) and (unsigned(hcolor) <=97)) then
         if (Video='1') then
-                Video_RGB  <=  "01011001";
+                Video_RGB  <=  "010110010";
         else
-                Video_RGB  <=  "00000000";
+                Video_RGB  <=  "000000000";
         end if;
 -- Yellow Bar
 elsif  ((unsigned(hcolor)  >=98 ) and (unsigned(hcolor) <=129)) then
         if (Video='1') then
-                Video_RGB  <=  "11111101";
+                Video_RGB  <=  "111111010";
         else
-                Video_RGB  <=  "00000000";
+                Video_RGB  <=  "000000000";
         end if;
 -- Blue for paddle line
 elsif  (( unsigned(hcolor)  >=224) and (unsigned(hcolor) <=230)) then
         if (Video='1') then
-         Video_RGB  <=  "01001011";
+                Video_RGB  <=  "010010111";
         else
-                Video_RGB  <=  "00000000";
+                Video_RGB  <=  "000000000";
         end if;
 --elsif  (( unsigned(hcolor)  >=256) and (unsigned(hcolor) <=264)) then
 --      if (Video='1') then
@@ -242,9 +242,9 @@ elsif  (( unsigned(hcolor)  >=224) and (unsigned(hcolor) <=230)) then
 --      end if;
 else
         if (Video='1') then
-                Video_RGB  <=  "11111111";
+                Video_RGB  <=  "111111111";
         else
-                Video_RGB  <=  "00000000";
+                Video_RGB  <=  "000000000";
         end if;
 end if;
 end process;
@@ -313,11 +313,11 @@ port map(
 		hcolor => hcolor,
 		hsync => hsync,
 		hblank => hblank,
-		vblank_s => vblank_s,
+		--vblank_s => vblank_s,
 		vblank_n_s => vblank_n_s,
 		vblank => vblank,
 		vsync => vsync,
-		vreset => vreset,
+		--vreset => vreset,
 		dn_wr => dn_wr,
 		dn_addr=>dn_addr,
 		dn_data=>dn_data,
@@ -338,7 +338,7 @@ port map(
 		HSync => HSync,
 		VSync => VSync,
 		CompSync_n_s => CompSync_n_s,
-		CompBlank_s => CompBlank_s,
+		--CompBlank_s => CompBlank_s,
 		Playfield_n => Playfield_n,
 
 		dn_wr => dn_wr,

@@ -29,72 +29,52 @@ module joy2quad
 reg [3:0] state = 0;
 
 always @(posedge CLK) begin
- reg [31:0] count = 0;
- if (count >0)
-  begin 
-	count=count-1;
- end
- else
- begin
- count=clkdiv;
- casex(state)
-	4'b0000: 
-	  begin
-	    steer=2'b00;
-		 if (left==1)
-		 begin
-			state=4'b0001;
-		 end
-		 if (right==1)
-		 begin
-			state=4'b0101;
-		 end
+	reg [31:0] count = 0;
+	if (count >0) count=count-1;
+	else begin
+		count=clkdiv;
+		casex(state)
+			0: begin
+				 steer = 2'b00;
+				 if (left==1)  state = 1;
+				 if (right==1) state = 5;
+			 end
 
-		 end
-	4'b0001: 
-	  begin
-	    steer=2'b00;
-		 state=4'b0010;
-	  end
-	4'b0010: 
-	  begin
-	    steer=2'b01;
-		 state=3'b0011;
-	  end
-	4'b0011: 
-	  begin
-	    steer=2'b11;
-		 state=4'b0100;
-	  end
-	4'b0100: 
-	  begin
-	    steer=2'b10;
-		 state=4'b000;
-	  end
-	4'b0101: 
-	  begin
-	    steer=2'b00;
-		 state=4'b0110;
-	  end
-	4'b0110: 
-	  begin
-	    steer=2'b10;
-		 state=4'b0111;
-	  end
-	4'b0111: 
-	  begin
-	    steer=2'b11;
-		 state=4'b1000;
-	  end
-	4'b1000: 
-	  begin
-	    steer=2'b01;
-		 state=4'b0000;
-		 
-	  end
+			1: begin
+				 steer=2'b00;
+				 state=2;
+			  end
+			2: begin
+				 steer=2'b01;
+				 state=3;
+			  end
+			3: begin
+				 steer=2'b11;
+				 state=4;
+			  end
+			4: begin
+				 steer=2'b10;
+				 state=0;
+			  end
 
- endcase
- end
+			5: begin
+				 steer=2'b00;
+				 state=6;
+			  end
+			6: begin
+				 steer=2'b10;
+				 state=7;
+			  end
+			7: begin
+				 steer=2'b11;
+				 state=8;
+			  end
+			8: begin
+				 steer=2'b01;
+				 state=0;
+			  end
+		endcase
+	end
 end
 
 endmodule

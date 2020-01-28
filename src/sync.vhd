@@ -116,17 +116,17 @@ end process;
 --		address => sync_reg(3) & V128 & V64 & V16 & V8 & V4 & V2 & V1,
 --		q => sync_bus
 --		);
-M2 : work.dpram generic map (8,8)
+M2 : work.dpram generic map (8,4)
 port map
 (
 	clock_a   => clk_12,
 	wren_a    => dn_wr and rom_sync_prom_cs,
 	address_a => dn_addr(7 downto 0),
-	data_a    => dn_data,
+	data_a    => dn_data(3 downto 0),
 
 	clock_b   => clk_12,
 	address_b => sync_reg(3) & V128 & V64 & V16 & V8 & V4 & V2 & V1,
-	q_b(3 downto 0)       => sync_bus 
+	q_b       => sync_bus 
 );
 -- Register fed by the sync PROM, in the original hardware this also creates the complements of these signals
 sync_register: process(hsync_int)
@@ -171,17 +171,17 @@ end process;
 --hcolor <= h_counter(7 downto 1) & '0';
 hcolor <= 255 - h_counter(8 downto 1);
 clk_6 <= h_counter(0);
-H1 <= h_counter(1);
-H2 <= h_counter(2);
-H4 <= h_counter(3);
+--H1 <= h_counter(1);
+--H2 <= h_counter(2);
+--H4 <= h_counter(3);
 H8 <= h_counter(4);
-H16 <=  h_counter(5);
+--H16 <=  h_counter(5);
 H32 <= h_counter(6);
 H64 <= h_counter(7);
-H128 <= h_counter(8);
+--H128 <= h_counter(8);
 H256 <= h_counter(9);
-H4_n <= not H4;
-H8_n <= not H8;
+--H4_n <= not H4;
+--H8_n <= not H8;
 H256_n <= not H256;
 
 V1 <= v_counter(0);
@@ -189,7 +189,7 @@ V2 <= v_counter(1);
 V4 <= v_counter(2);
 V8 <= v_counter(3);
 V16 <= v_counter(4);
-V32 <= v_counter(5);
+--V32 <= v_counter(5);
 V64 <= v_counter(6);
 V128 <= v_counter(7);
 

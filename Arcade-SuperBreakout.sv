@@ -73,15 +73,27 @@ module emu
 	output  [6:0] USER_OUT
 );
 
-
-
-
-
 assign VGA_F1    = 0;
 assign USER_OUT  = '1;
-assign LED_DISK  = lamp1;
-assign LED_POWER = lamp2;
+assign LED_DISK  = 0;
+assign LED_POWER = 0;
 assign LED_USER  = ioctl_download;
+
+assign HDMI_ARX  = status[1] ? 8'd16 : status[2] ? 8'd4 : 8'd3;
+assign HDMI_ARY  = status[1] ? 8'd9  : status[2] ? 8'd3 : 8'd4;
+
+/////////////////////////////////////////////////////////
+
+wire clk_sys, clk_vid;
+
+pll pll (
+	.refclk(CLK_50M),
+	.rst(0),
+	.outclk_0(clk_vid), // 48 MHz
+	.outclk_1(clk_sys)  // 12 MHz
+);
+
+/////////////////////////////////////////////////////////
 
 `include "build_id.v"
 localparam CONF_STR = {
@@ -99,8 +111,8 @@ localparam CONF_STR = {
 	"OG,Color,On,Off;",
 	"-;",
 	"R0,Reset;",
-	"J1,Release,Select,Start 1P,Start 2P,Coin;",
-	"jn,A,X,Start,Select,R;",
+	"J1,Serve,Start 1P,Start 2P,Coin;",
+	"jn,A,Start,Select,R;",
 	"V,v",`BUILD_DATE
 };
 
@@ -120,12 +132,11 @@ wire [10:0] ps2_key;
 //wire [24:0] ps2_mouse;
 
 wire [15:0] joystick_0, joystick_1;
-wire [15:0] joy0 =  joystick_0;
-wire [15:0] joy1 =  joystick_1;
+wire [15:0] joy = joystick_0 | joystick_1;
 
 wire [21:0] gamma_bus;
 
-hps_io #(.STRLEN(($size(CONF_STR)>>3) )/*, .PS2DIV(1000), .WIDE(0)*/) hps_io
+hps_io #(.STRLEN(($size(CONF_STR)>>3) )) hps_io
 (
 	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
@@ -134,18 +145,18 @@ hps_io #(.STRLEN(($size(CONF_STR)>>3) )/*, .PS2DIV(1000), .WIDE(0)*/) hps_io
 	.joystick_0(joystick_0),
 	.joystick_1(joystick_1),
 
-        .buttons(buttons),
-        .status(status),
-        .status_menumask(direct_video),
-        .forced_scandoubler(forced_scandoubler),
-        .gamma_bus(gamma_bus),
-        .direct_video(direct_video),
+	.buttons(buttons),
+	.status(status),
+	.status_menumask(direct_video),
+	.forced_scandoubler(forced_scandoubler),
+	.gamma_bus(gamma_bus),
+	.direct_video(direct_video),
 
 	.ioctl_download(ioctl_download),
 	.ioctl_wr(ioctl_wr),
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_data),
-	
+
 	.ps2_key(ps2_key)
 );
 
@@ -174,51 +185,38 @@ always @(posedge clk_sys) begin
 			'h01E: btn_start_2     <= pressed; // 2
 			'h02E: btn_coin_1      <= pressed; // 5
 			'h036: btn_coin_2      <= pressed; // 6
-//                        'h02D: btn_up_2        <= pressed; // R
-//                        'h02B: btn_down_2      <= pressed; // F
+//			'h02D: btn_up_2        <= pressed; // R
+//			'h02B: btn_down_2      <= pressed; // F
 			'h023: btn_left_2      <= pressed; // D
 			'h034: btn_right_2     <= pressed; // G
 			'h01C: btn_serve_2     <= pressed; // A
-
-			
-			
 		endcase
 	end
 end
 
-//reg btn_up    = 0;
-//reg btn_down  = 0;
-reg btn_right = 0;
-reg btn_left  = 0;
-reg btn_serve  = 0;
-reg btn_one_player  = 0;
-reg btn_two_players = 0;
+//reg btn_up    =0;
+//reg btn_down  =0;
+reg btn_right   =0;
+reg btn_left    =0;
+reg btn_serve   =0;
+reg btn_start_1 =0;
+reg btn_start_2 =0;
+reg btn_coin_1  =0;
+reg btn_coin_2  =0;
+reg btn_left_2  =0;
+reg btn_right_2 =0;
+reg btn_serve_2 =0;
 
-reg btn_start_1=0;
-reg btn_start_2=0;
-reg btn_coin_1=0;
-reg btn_coin_2=0;
-reg btn_left_2=0;
-reg btn_right_2=0;
-reg btn_serve_2=0;
+wire m_left	   = btn_left  | btn_left_2  | joy[1];
+wire m_right   = btn_right | btn_right_2 | joy[0];
+wire m_serve   = btn_serve | btn_serve_2 | joy[4] | ~USER_IN[3];
 
+wire m_select1 = status[13]; //Select level Double
+wire m_select2 = status[14]; //Select level Progresive
 
-wire m_left	=  btn_left  | joy0[1];
-wire m_right	=  btn_right | joy0[0];
-wire m_serve		=  btn_serve_2|btn_serve| joy0[4]|joy1[4] | ~USER_IN[3];
-wire m_select		=  status[13]; //Select level Double
-
-
-wire m_left_2	=  btn_left_2|joy1[1];
-wire m_right_2	=  btn_right_2| joy1[0];
-wire m_select_2  	=  status[14]; //Select level Progresive
-
-
-wire m_start1 = btn_start_1 | joy0[6] | joy1[6];
-wire m_start2 = btn_start_2 | joy0[7] | joy1[7];
-wire m_coin   = btn_coin_1  | joy0[8] | joy1[8];
-
-
+wire m_start1  = btn_start_1 | joy[5];
+wire m_start2  = btn_start_2 | joy[6];
+wire m_coin    = btn_coin_1  | joy[7];
 
 /*
 -- Configuration DIP switches, these can be brought out to external switches if desired
@@ -229,17 +227,11 @@ wire m_coin   = btn_coin_1  | joy0[8] | joy1[8];
 --							6	7	8	Bonus play			(011 - 600 Progressive, 400 Cavity, 600 Double)
 		
 SW2 <= "00101011";
-
-
-
 */
-
 
 wire [7:0] SW1 = {status[11:10],1'b1,1'b0,status[12],status[8:6]};
 
 wire [1:0] steer0;
-wire [1:0] steer1;
-
 joy2quad steerjoy2quad0
 (
 	.CLK(clk_sys),
@@ -251,20 +243,9 @@ joy2quad steerjoy2quad0
 	
 	.steer(steer0)
 );
-joy2quad steerjoy2quad1
-(
-	.CLK(clk_sys),
-	//.clkdiv('d22500),
-	.clkdiv('d5500),
-	
-	.right(m_right_2),
-	.left(m_left_2),
-	
-	.steer(steer1)
-);
 
 reg use_io = 0; // 1 - use encoder on USER_IN[1:0] pins
-always @(posedge clk_12) begin
+always @(posedge clk_sys) begin
 reg [1:0] old_io;
 reg [1:0] old_steer;
 
@@ -280,10 +261,10 @@ end
 			Counter_O	: out std_logic;	-- Coin counter output (Active high)
 */
 wire videowht;
-wire lamp1,lamp2;
+wire [7:0] audio1;
 
 super_breakout super_breakout(
-	.Reset_n(~(RESET | status[0] | buttons[1] | ioctl_download)),
+	.Reset_n(~(RESET | status[0] | buttons[1])),
 
 	.dn_addr(ioctl_addr[16:0]),
 	.dn_data(ioctl_data),
@@ -300,74 +281,50 @@ super_breakout super_breakout(
 	.Start2_I(~(m_start2 )),
 	
 	.Serve_I(~m_serve),
-	.Select1_I(~m_select),
-	.Select2_I(~m_select_2),
+	.Select1_I(~m_select1),
+	.Select2_I(~m_select2),
 	.Slam_I(1),
 	.Test_I	(~status[15]),
 	.Enc_A(use_io ? USER_IN[1] : steer0[1]),
 	.Enc_B(use_io ? USER_IN[0] : steer0[0]),
-	.Lamp1_O(lamp1),
-	.Lamp2_O(lamp2),
+	.Lamp1_O(),
+	.Lamp2_O(),
 	.hs_O(hs),
 	.vs_O(vs),
-	.hblank_O(hbl0),
-	.vblank_O(vbl0),
-	.clk_12(clk_12),
-	.clk_6_O(CLK_VIDEO_2),
+	.hblank_O(hblank),
+	.vblank_O(vblank),
+	.clk_12(clk_sys),
+	.clk_6_O(ce_pix),
 	.SW1_I(SW1)
-	);
+);
 			
-			
-wire [7:0] audio1;
-wire [1:0] video;
-wire [3:0] videor;
 ///////////////////////////////////////////////////
-//wire clk_sys, clk_ram, clk_ram2, clk_pixel, locked;
-wire clk_sys,locked;
-wire clk_48,clk_24,clk_12,clk_6,clk_3,CLK_VIDEO_2;
 
+wire hs,vs,hblank,vblank;
 
-
-wire hs,vs,hblank,vblank,hbl0,vbl0;
-
-assign hblank=hbl0;
-assign vblank=vbl0;
-
-
-assign HDMI_ARX = status[1] ? 8'd16 : status[2] ? 8'd4 : 8'd3;
-assign HDMI_ARY = status[1] ? 8'd9  : status[2] ? 8'd3 : 8'd4;
-
-wire [7:0] videorgb;
+wire ce_pix;
+wire [8:0] videorgb;
 wire [2:0] r,g;
-wire [1:0] b;
-assign r={videowht,videowht,videowht};
-assign g={videowht,videowht,videowht};
-assign b={videowht,videowht};
-
-reg ce_pix;
-always @(posedge clk_48) begin
-        reg [2:0] div;
-
-        div <= div + 1'd1;
-        ce_pix <= !div;
-end
+wire [2:0] b;
+assign r={3{videowht}};
+assign g={3{videowht}};
+assign b={3{videowht}};
 
 wire no_rotate = status[2] | direct_video;
 
-arcade_video #(320,240,8) arcade_video
+arcade_video #(320,240,9) arcade_video
 (
 	.*,
 
-	.clk_video(clk_48),
+	.clk_video(clk_vid),
 	.RGB_in(~status[16]?videorgb:{r,g,b}),
-//	.RGB_in({r,g,b}),
 	.HBlank(hblank),
 	.VBlank(vblank),
 	.HSync(hs),
 	.VSync(vs),
 	.rotate_ccw(1),
 	
-	.fx(status[5:3]),
+	.fx(status[5:3])
 );
 
 
@@ -375,17 +332,5 @@ assign AUDIO_L={audio1,8'b00000000};
 assign AUDIO_R=AUDIO_L;
 assign AUDIO_S = 0;
 wire scrap;
-assign clk_sys=clk_12;
-
-pll pll (
-	.refclk ( CLK_50M   ),
-	.rst(0),
-	.locked 		( locked    ),        // PLL is running stable
-	.outclk_0	( clk_24	),        // 24 MHz
-	.outclk_1	( clk_12	),        // 12 MHz
-	.outclk_2	( clk_6	),        // 6 MHz
-	.outclk_3	( clk_3	),        // 3 MHz
-	.outclk_4	( clk_48	)        // 48 MHz
-	 );
 
 endmodule

@@ -397,9 +397,9 @@ begin
 	end if;
 end process;	
 
-RAM_n <= D2_out(0);
+--RAM_n <= D2_out(0);
 SYNC1_n <= D2_out(1);
-SYNC1 <= (not SYNC1_n);
+--SYNC1 <= (not SYNC1_n);
 SWITCH_n <= D2_out(2);
 SYNC2_n <= D2_out(3);
 DISPLAY_n <= (D2_out(0) and D2_out(8));
