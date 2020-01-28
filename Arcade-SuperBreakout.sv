@@ -268,8 +268,10 @@ end
 wire videowht;
 wire [7:0] audio1;
 
+wire reset = RESET | status[0] | buttons[1];
+
 super_breakout super_breakout(
-	.Reset_n(~(RESET | status[0] | buttons[1])),
+	.Reset_n(~reset),
 
 	.dn_addr(ioctl_addr[16:0]),
 	.dn_data(ioctl_data),
@@ -279,17 +281,17 @@ super_breakout super_breakout(
 	.Video_RGB(videorgb),
 
 	.Audio_O(audio1),
-	.Coin1_I(~(m_coin)),
-	.Coin2_I(~(btn_coin_2)),
+	.Coin1_I(~m_coin),
+	.Coin2_I(~btn_coin_2),
 	
-	.Start1_I(~(m_start1 )),
-	.Start2_I(~(m_start2 )),
+	.Start1_I(~m_start1),
+	.Start2_I(~m_start2),
 	
 	.Serve_I(~m_serve),
 	.Select1_I(~m_select1),
 	.Select2_I(~m_select2),
 	.Slam_I(1),
-	.Test_I	(~status[15]),
+	.Test_I(~status[15]),
 	.Enc_A(use_io ? USER_IN[1] : steer0[1]),
 	.Enc_B(use_io ? USER_IN[0] : steer0[0]),
 	.Paddle(status[17] ? (joya ^ 8'h80) : 8'h00),
@@ -318,14 +320,37 @@ assign b={3{videowht}};
 
 wire no_rotate = status[2] | direct_video;
 
-arcade_video #(320,240,9) arcade_video
+reg HBlank, VBlank;
+always @(posedge clk_sys) begin
+	reg [10:0] hcnt, vcnt;
+	reg old_hbl, old_vbl;
+
+	if(ce_pix) begin
+		hcnt <= hcnt + 1'd1;
+		old_hbl <= hblank;
+		if(old_hbl & ~hblank) begin
+			hcnt <= 0;
+			
+			vcnt <= vcnt + 1'd1;
+			old_vbl <= vblank;
+			if(old_vbl & ~vblank) vcnt <= 0;
+		end
+		
+		if (hcnt == 37)  HBlank <= 0;
+		if (hcnt == 293) HBlank <= 1;
+		
+		if (vcnt == 0)   VBlank <= 0;
+		if (vcnt == 224) VBlank <= 1;
+	end
+end
+
+
+arcade_video #(256,224,9) arcade_video
 (
 	.*,
 
 	.clk_video(clk_vid),
 	.RGB_in(~status[16]?videorgb:{r,g,b}),
-	.HBlank(hblank),
-	.VBlank(vblank),
 	.HSync(hs),
 	.VSync(vs),
 	.rotate_ccw(1),
@@ -333,8 +358,20 @@ arcade_video #(320,240,9) arcade_video
 	.fx(status[5:3])
 );
 
+reg mute;
+always @(posedge clk_sys) begin
+	integer cnt;
 
-assign AUDIO_L={audio1,8'b00000000};
+	mute <= 0;
+	if(cnt < 24000000) begin
+		mute <= 1;
+		cnt <= cnt + 1;
+	end
+
+	if(reset) cnt <= 0;
+end
+
+assign AUDIO_L={mute ? 8'd0 : audio1, 8'd0};
 assign AUDIO_R=AUDIO_L;
 assign AUDIO_S = 0;
 wire scrap;
