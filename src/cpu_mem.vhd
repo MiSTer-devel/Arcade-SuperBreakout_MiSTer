@@ -20,37 +20,36 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity CPU_mem is 
 port(	
-			Clk12				: in  std_logic;
-			Clk6				: in  std_logic;
-			Reset_n			: in  std_logic;
-			NMI_n				: in  std_logic;
-			VCount			: in 	std_logic_vector(7 downto 0);
-			HCount			: in  std_logic_vector(8 downto 0);
-			Hsync_n			: in  std_logic;
-			Timer_Reset_n	: in  std_logic;
-			IntAck_n			: in  std_logic;
-			IO_wr				: out std_logic;
-			PHI2_O			: out std_logic;
-			Display			: out	std_logic_vector(7 downto 0);
-			IO_Adr			: out std_logic_vector(9 downto 0);
-			Inputs			: in	std_logic_vector(1 downto 0);
+	Clk12				: in  std_logic;
+	Clk6				: in  std_logic;
+	Reset_n			: in  std_logic;
+	NMI_n				: in  std_logic;
+	VCount			: in 	std_logic_vector(7 downto 0);
+	HCount			: in  std_logic_vector(8 downto 0);
+	Hsync_n			: in  std_logic;
+	Timer_Reset_n	: in  std_logic;
+	IntAck_n			: in  std_logic;
+	IO_wr				: out std_logic;
+	PHI2_O			: out std_logic;
+	Display			: out	std_logic_vector(7 downto 0);
+	IO_Adr			: out std_logic_vector(9 downto 0);
+	Inputs			: in	std_logic_vector(1 downto 0);
 
-			-- signals that carry the ROM data from the MiSTer disk
-			dn_addr        	: in  std_logic_vector(15 downto 0);
-			dn_data        	: in  std_logic_vector(7 downto 0);
-			dn_wr          	: in  std_logic;
-			
-			rom2_cs				: in  std_logic;
-			rom3_cs				: in  std_logic;
-			rom4_cs				: in  std_logic;
-			rom_32_cs			: in	std_logic
+	-- signals that carry the ROM data from the MiSTer disk
+	dn_addr        : in  std_logic_vector(15 downto 0);
+	dn_data        : in  std_logic_vector(7 downto 0);
+	dn_wr          : in  std_logic;
 
-			);
+	rom2_cs			: in  std_logic;
+	rom3_cs			: in  std_logic;
+	rom4_cs			: in  std_logic;
+	rom_32_cs		: in	std_logic
+);
 end CPU_mem;
 
 architecture rtl of CPU_mem is
 
-signal cpu_clk			        : std_logic;
+signal cpu_clk			: std_logic;
 signal PHI1				: std_logic;
 signal PHI2				: std_logic;
 signal Q5				: std_logic;
@@ -62,7 +61,7 @@ signal A7_7				: std_logic;
 signal A8_6				: std_logic;
 
 signal H256				: std_logic;
-signal H256_n			        : std_logic;
+signal H256_n			: std_logic;
 signal H128				: std_logic;
 signal H64				: std_logic;
 signal H32				: std_logic;
@@ -76,55 +75,55 @@ signal V32				: std_logic;
 signal V16				: std_logic;
 signal V8				: std_logic;
 
-signal CPU_Reset_n	                : std_logic;
-signal IRQ_n			        : std_logic;
+signal CPU_Reset_n	: std_logic;
+signal IRQ_n			: std_logic;
 signal RW_n				: std_logic;
 signal RnW 				: std_logic;
-signal A				: std_logic_vector(15 downto 0);
+signal A					: std_logic_vector(23 downto 0);
 signal Adr				: std_logic_vector(9 downto 0);
-signal cpuDin			        : std_logic_vector(7 downto 0);
-signal cpuDout			        : std_logic_vector(7 downto 0);
-signal DBUS_n			        : std_logic_vector(7 downto 0);
+signal cpuDin			: std_logic_vector(7 downto 0);
+signal cpuDout			: std_logic_vector(7 downto 0);
+signal DBUS_n			: std_logic_vector(7 downto 0);
 signal DBUS				: std_logic_vector(7 downto 0);
 
 -- No ROM 0 or 1 on the EPROM based version
-signal ROM2_dout		        : std_logic_vector(7 downto 0);
-signal ROM3_dout		        : std_logic_vector(7 downto 0);
-signal ROM4_dout		        : std_logic_vector(7 downto 0);
-signal ROM_dout		                : std_logic_vector(7 downto 0);
+signal ROM2_dout		: std_logic_vector(7 downto 0);
+signal ROM3_dout		: std_logic_vector(7 downto 0);
+signal ROM4_dout		: std_logic_vector(7 downto 0);
+signal ROM_dout		: std_logic_vector(7 downto 0);
 
 signal ROM2				: std_logic;
 signal ROM3				: std_logic;
 signal ROM4				: std_logic;
-signal ROM_ce			        : std_logic;
-signal ROM_mux_in		        : std_logic_vector(2 downto 0);
+signal ROM_ce			: std_logic;
+signal ROM_mux_in		: std_logic_vector(2 downto 0);
 
-signal cpuRAM_dout	                : std_logic_vector(7 downto 0);
-signal Vram_dout		        : std_logic_vector(7 downto 0);
-signal RAM_addr		                : std_logic_vector(9 downto 0) := (others => '0');
-signal Vram_addr		        : std_logic_vector(9 downto 0) := (others => '0');
-signal scanbus			        : std_logic_vector(9 downto 0) := (others => '0');
-signal RAM_dout		                : std_logic_vector(7 downto 0);
-signal RAM_we			        : std_logic;
-signal RAM_RW_n 		        : std_logic;
-signal RAM_ce_n		                : std_logic;
-signal RAM_n			        : std_logic; 
+signal cpuRAM_dout	: std_logic_vector(7 downto 0);
+signal Vram_dout		: std_logic_vector(7 downto 0);
+signal RAM_addr		: std_logic_vector(9 downto 0) := (others => '0');
+signal Vram_addr		: std_logic_vector(9 downto 0) := (others => '0');
+signal scanbus			: std_logic_vector(9 downto 0) := (others => '0');
+signal RAM_dout		: std_logic_vector(7 downto 0);
+signal RAM_we			: std_logic;
+signal RAM_RW_n 		: std_logic;
+signal RAM_ce_n		: std_logic;
+signal RAM_n			: std_logic; 
 signal WRAM				: std_logic;
-signal WRITE_n			        : std_logic;
+signal WRITE_n			: std_logic;
 
-signal F2_in			        : std_logic_vector(3 downto 0);
-signal F2_out			        : std_logic_vector(9 downto 0);
-signal D2_in			        : std_logic_vector(3 downto 0);
-signal D2_out			        : std_logic_vector(9 downto 0);
-signal E8_in			        : std_logic_vector(3 downto 0);
-signal E8_out			        : std_logic_vector(9 downto 0);
+signal F2_in			: std_logic_vector(3 downto 0);
+signal F2_out			: std_logic_vector(9 downto 0);
+signal D2_in			: std_logic_vector(3 downto 0);
+signal D2_out			: std_logic_vector(9 downto 0);
+signal E8_in			: std_logic_vector(3 downto 0);
+signal E8_out			: std_logic_vector(9 downto 0);
 
-signal Sync1			        : std_logic;
-signal Sync1_n			        : std_logic;
-signal Sync2_n			        : std_logic;
-signal Switch_n		                : std_logic;
-signal Display_n		        : std_logic;
-signal Addec_bus		        : std_logic_vector(7 downto 0);
+signal Sync1			: std_logic;
+signal Sync1_n			: std_logic;
+signal Sync2_n			: std_logic;
+signal Switch_n		: std_logic;
+signal Display_n		: std_logic;
+signal Addec_bus		: std_logic_vector(7 downto 0);
 
 signal J6_5				: std_logic;
 signal J6_9				: std_logic;
@@ -161,7 +160,7 @@ port map(
 		NMI_n => NMI_n,
 		SO_n => '1',
 		R_W_n => RW_n,
-		A(15 downto 0) => A,
+		A => A,
 		DI => cpuDin,
 		DO => cpuDout
 		);
@@ -228,27 +227,6 @@ end process;
 
 -- Program ROMs
 -- Note that Super Breakout only uses three ROMs, there is no ROM 1
---C1: entity work.prog_rom2
---port map(
---		clock => clk6,
---		address => A(10) & Adr(9 downto 0),
---		q => rom2_dout
---		);
-
---D1: entity work.prog_rom3
---port map(
---		clock => clk6,
---		address => A(10) & Adr(9 downto 0),
---		q => rom3_dout
---		);
-
---E1: entity work.prog_rom4
---port map(
---		clock => clk6,
---		address => A(10) & Adr(9 downto 0),
---		q => rom4_dout
---		);
-
 C1 : work.dpram generic map (11,8)
 port map
 (
@@ -303,16 +281,17 @@ end process;
 -- RAM 
 -- The original hardware multiplexes access to the RAM between the CPU and video hardware depending on the state of
 -- the phi2 clock. In the FPGA it's easier to use dual-ported RAM which is less dependent on precise timing.
-RAM: entity work.ram1k_dp
+RAM: work.dpram generic map (10,8)
 port map(
-	clock => clk6,
 -- CPU side	
+	clock_a => clk6,
 	address_a => Adr(9 downto 0),
 	wren_a => ram_we,
 	data_a => DBUS_n,
 	q_a=> CPUram_dout,
 
 -- Video side
+	clock_b => clk6,
 	address_b => Vram_addr,
 	wren_b => '0',
 	data_b => x"FF",
