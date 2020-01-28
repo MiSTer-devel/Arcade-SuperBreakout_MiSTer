@@ -21,49 +21,45 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity super_breakout is 
 port(		
-			Reset_n		: in	std_logic;	-- Reset (Active low)
-			Coin1_I		: in	std_logic;	-- Coin switches 
-			Coin2_I		: in 	std_logic;
-			Start1_I		: in	std_logic;	-- Player start buttons
-			Start2_I		: in	std_logic;
-			Serve_I		: in 	std_logic;
-			Select1_I	: in  std_logic;  -- Select inputs from game type select knob
-			Select2_I	: in  std_logic;
-			Test_I		: in 	std_logic; 	-- Self test switch
-			Slam_I		: in	std_logic;	-- Slam switch
-			Enc_A			: in  std_logic;	-- Rotary encoder, used in place of a pot to control the paddle
-			Enc_B			: in  std_logic;
-			Paddle		: in  std_logic_vector(7 downto 0);
-			Pot_Comp1_I	: in  std_logic;	-- If you want to use a pot instead, this goes to the output of the comparator
-			VBlank_O		: out std_logic;  -- VBlank signal to reset the ramp genrator used by the pot reading circuitry
-			Lamp1_O		: out	std_logic;	-- Player start button lamps (Active high to control incandescent lamps via SCR or transistors)
-			Lamp2_O		: out	std_logic;
-			Serve_LED_O	: out std_logic;	-- Serve button LED (Active low)
-			Counter_O	: out std_logic;	-- Coin counter output (Active high)
+	Reset_n		: in	std_logic;	-- Reset (Active low)
+	Coin1_I		: in	std_logic;	-- Coin switches 
+	Coin2_I		: in 	std_logic;
+	Start1_I		: in	std_logic;	-- Player start buttons
+	Start2_I		: in	std_logic;
+	Serve_I		: in 	std_logic;
+	Select1_I	: in  std_logic;  -- Select inputs from game type select knob
+	Select2_I	: in  std_logic;
+	Test_I		: in 	std_logic; 	-- Self test switch
+	Slam_I		: in	std_logic;	-- Slam switch
+	Enc_A			: in  std_logic;	-- Rotary encoder, used in place of a pot to control the paddle
+	Enc_B			: in  std_logic;
+	Paddle		: in  std_logic_vector(7 downto 0);
+	Pot_Comp1_I	: in  std_logic;	-- If you want to use a pot instead, this goes to the output of the comparator
+	VBlank_O		: out std_logic;  -- VBlank signal to reset the ramp genrator used by the pot reading circuitry
+	Lamp1_O		: out	std_logic;	-- Player start button lamps (Active high to control incandescent lamps via SCR or transistors)
+	Lamp2_O		: out	std_logic;
+	Serve_LED_O	: out std_logic;	-- Serve button LED (Active low)
+	Counter_O	: out std_logic;	-- Coin counter output (Active high)
 
-			Audio_O		: out std_logic_vector(7 downto 0);	-- PWM audio, low pass filter is desirable but not really necessary for the simple SFX in this game
-			Video_O		: out std_logic;	-- Video output, sum this through a 470R resistor to composite video
-			Video_RGB	: out std_logic_vector(8 downto 0);
-			CompSync_O	: out std_logic; -- Composite sync, sum this through a 1k resistor to composite video
-			SW1_I			: in std_logic_vector(7 downto 0);
-			
-			
-			hs_O			: out std_logic;
-			vs_O			: out std_logic;
-			hblank_O		: out std_logic;
+	Audio_O		: out std_logic_vector(7 downto 0);	-- PWM audio, low pass filter is desirable but not really necessary for the simple SFX in this game
+	Video_O		: out std_logic;	-- Video output, sum this through a 470R resistor to composite video
+	Video_RGB	: out std_logic_vector(8 downto 0);
+	CompSync_O	: out std_logic; -- Composite sync, sum this through a 1k resistor to composite video
+	SW1_I			: in std_logic_vector(7 downto 0);
 
-			clk_12		: in std_logic;
-			clk_6_O		: out std_logic;
 
-			-- signals that carry the ROM data from the MiSTer disk
-			dn_addr        : in  std_logic_vector(15 downto 0);
-			dn_data        : in  std_logic_vector(7 downto 0);
-			dn_wr          : in  std_logic
-			
-			
+	hs_O			: out std_logic;
+	vs_O			: out std_logic;
+	hblank_O		: out std_logic;
 
-			
-			);
+	clk_12		: in std_logic;
+	clk_6_O		: out std_logic;
+
+	-- signals that carry the ROM data from the MiSTer disk
+	dn_addr     : in  std_logic_vector(15 downto 0);
+	dn_data     : in  std_logic_vector(7 downto 0);
+	dn_wr       : in  std_logic
+);
 
 end super_breakout;
 
@@ -149,7 +145,7 @@ signal rom_32_cs   		: std_logic;
 
 begin
 
---033453.c1	2048	0			 00 0000 0000 0000
+--033453.c1	2048	0			 00 0000 00000000
 --033454.d1	2048	2048		 00 1000 00000000
 --033455.e1	2048	4096		 01 0000 00000000
 --blank	2048	6144			 01 1000 00000000
@@ -168,10 +164,6 @@ rom_sync_prom_cs <= '1' when dn_addr(13 downto 8) =  "100100"   else '0';
 rom_32_cs <= '1' when dn_addr(13 downto 8) =  "100101"   else '0';
 
 
-
-
-
-
 -- Configuration DIP switches, these can be brought out to external switches if desired
 -- See Super Breakout manual page 13 for complete information. Active low (0 = On, 1 = Off)
 --    1 	2							Language				(00 - English)
@@ -183,122 +175,47 @@ SW2 <= SW1_I;--"00101011";
   
 
 -- Video mixer
-Video_O <= not(Playfield_n and Ball1_n and Ball2_n and Ball3_n);
+Video <= not(Playfield_n and Ball1_n and Ball2_n and Ball3_n);
+Video_O <= Video;
 CompSync_O <= CompSync_n_s;
 
--- r 3  g 3  b 2
+-- r 3  g 3  b 3
 -- https://github.com/mamedev/mame/blob/master/src/mame/layout/sbrkout.lay
 
-process (hcolor,Playfield_n , Ball1_n , Ball2_n , Ball3_n,hcount,Video)
+process (hcolor,hcount,vcount,Video,Ball1_n,Ball2_n,Ball3_n)
 begin
-Video <=  not(Playfield_n and Ball1_n and Ball2_n and Ball3_n);
--- check for the wrap around (126)
-if  ((unsigned(hcolor)  >=121 ) and (unsigned(hcolor) <=128) and (hcount(8)='0')) then
-        if (Video='1') then
-                Video_RGB  <=  "010010111";
-        else
-                Video_RGB  <=  "000000000";
-        end if;
--- Blue Bar / Top
-elsif ( (unsigned(hcolor) >=0 ) and (unsigned(hcolor) <= 33) ) then
-        if (Video='1') then
-                Video_RGB  <=  "010010111";
-        else
-                Video_RGB  <=  "000000000";
-        end if;
--- Orange Bar
-elsif  (( unsigned(hcolor)  >=34 ) and (unsigned(hcolor) <=65)) then
-        if (Video='1') then
-                Video_RGB  <=  "111100000";
-        else
-                Video_RGB  <=  "000000000";
-        end if;
--- Green Bar
-elsif  (( unsigned(hcolor)  >=66 ) and (unsigned(hcolor) <=97)) then
-        if (Video='1') then
-                Video_RGB  <=  "010110010";
-        else
-                Video_RGB  <=  "000000000";
-        end if;
--- Yellow Bar
-elsif  ((unsigned(hcolor)  >=98 ) and (unsigned(hcolor) <=129)) then
-        if (Video='1') then
-                Video_RGB  <=  "111111010";
-        else
-                Video_RGB  <=  "000000000";
-        end if;
--- Blue for paddle line
-elsif  (( unsigned(hcolor)  >=224) and (unsigned(hcolor) <=230)) then
-        if (Video='1') then
-                Video_RGB  <=  "010010111";
-        else
-                Video_RGB  <=  "000000000";
-        end if;
---elsif  (( unsigned(hcolor)  >=256) and (unsigned(hcolor) <=264)) then
---      if (Video='1') then
---              Video_RGB  <=  "11111111";
---              Video_RGB  <=  "11100000";
---      else
---              Video_RGB  <=  "00000000";
---      end if;
-else
-        if (Video='1') then
-                Video_RGB  <=  "111111111";
-        else
-                Video_RGB  <=  "000000000";
-        end if;
-end if;
+	if Video = '0' then
+		Video_RGB <= "000000000";
+	else
+		-- ball
+		if Ball1_n = '0' or Ball2_n = '0' or Ball3_n = '0' then
+			Video_RGB  <=  "111111000";
+		-- border
+		elsif (unsigned(vcount) <= 7) or (unsigned(vcount) >= 218) or (unsigned(hcolor) = 0) or (hcount(8)='0') then
+			Video_RGB  <=  "111111111";
+		-- check for the wrap around (126)
+		elsif  ((unsigned(hcolor)  >= 121 ) and (unsigned(hcolor) <=128) and (hcount(8)='0')) then
+			 Video_RGB  <=  "010010111";
+		-- Blue Bar / Top
+		elsif ( (unsigned(hcolor) >=0 ) and (unsigned(hcolor) <= 33) ) then
+			 Video_RGB  <=  "010010111";
+		-- Orange Bar
+		elsif  (( unsigned(hcolor)  >=34 ) and (unsigned(hcolor) <=65)) then
+			 Video_RGB  <=  "111100000";
+		-- Green Bar
+		elsif  (( unsigned(hcolor)  >=66 ) and (unsigned(hcolor) <=97)) then
+			 Video_RGB  <=  "010110010";
+		-- Yellow Bar
+		elsif  ((unsigned(hcolor)  >=98 ) and (unsigned(hcolor) <=129)) then
+			 Video_RGB  <=  "111111010";
+		-- Blue for paddle line
+		elsif  (( unsigned(hcolor)  >=224) and (unsigned(hcolor) <=230)) then
+			 Video_RGB  <=  "010010111";
+		else
+			 Video_RGB  <=  "111111111";
+		end if;
+	end if;
 end process;
-
-
---
---process (hcolor,Playfield_n , Ball1_n , Ball2_n , Ball3_n)
---begin
---Video <=  not(Playfield_n and Ball1_n and Ball2_n and Ball3_n);
---if ( (unsigned(hcolor) >=0 ) and (unsigned(hcolor) <= 40) ) then
---	if (Video='1') then
---		Video_RGB  <=  "10011011";
---	else
---		Video_RGB  <=  "00000000";
---	end if;
---elsif  (( unsigned(hcolor)  >=41 ) and (unsigned(hcolor) <=72)) then
---	if (Video='1') then
---		Video_RGB  <=  "11110010";
---	else
---		Video_RGB  <=  "00000000";
---	end if;
---elsif  (( unsigned(hcolor)  >=73 ) and (unsigned(hcolor) <=105)) then
---	if (Video='1') then
---		Video_RGB  <=  "00111110";
---	else
---		Video_RGB  <=  "00000000";
---	end if;
---elsif  ((unsigned(hcolor)  >=106 ) and (unsigned(hcolor) <=231)) then
---	if (Video='1') then
---		Video_RGB  <=  "10011011";
---	else
---		Video_RGB  <=  "00000000";
---	end if;
---elsif  (( unsigned(hcolor)  >=232) and (unsigned(hcolor) <=240)) then
---	if (Video='1') then
---		Video_RGB  <=  "10010011";
---	else
---		Video_RGB  <=  "00000000";
---	end if;
---elsif  (( unsigned(hcolor)  >=241) and (unsigned(hcolor) <=256)) then
---	if (Video='1') then
---		Video_RGB  <=  "11111111";
---	else
---		Video_RGB  <=  "00000000";
---	end if;
---else
---	if (Video='1') then
---		Video_RGB  <=  "11111111";
---	else
---		Video_RGB  <=  "00000000";
---	end if;
---end if;
---end process;
 
 		
 Vid_sync: entity work.synchronizer
@@ -362,6 +279,7 @@ port map(
 
 Sounds: entity work.audio
 port map(
+		Clk12 => Clk_12,
 		Reset_n => Reset_n,
 		Tones_n => Tones_n,
 		Display => Display(3 downto 0),

@@ -337,7 +337,7 @@ always @(posedge clk_sys) begin
 		end
 		
 		if (hcnt == 37)  HBlank <= 0;
-		if (hcnt == 293) HBlank <= 1;
+		if (hcnt == 292) HBlank <= 1;
 		
 		if (vcnt == 0)   VBlank <= 0;
 		if (vcnt == 224) VBlank <= 1;
@@ -345,7 +345,7 @@ always @(posedge clk_sys) begin
 end
 
 
-arcade_video #(256,224,9) arcade_video
+arcade_video #(255,224,9) arcade_video
 (
 	.*,
 

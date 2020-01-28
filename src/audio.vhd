@@ -22,11 +22,12 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity audio is 
 port(		
-			Reset_n		: in	std_logic;
-			Tones_n		: in	std_logic;
-			Display		: in	std_logic_vector(3 downto 0);
-			VCount		: in  std_logic_vector(7 downto 0);
-			Audio_PWM	: out std_logic_vector(7 downto 0));
+	Clk12 		: in	std_logic;
+	Reset_n		: in	std_logic;
+	Tones_n		: in	std_logic;
+	Display		: in	std_logic_vector(3 downto 0);
+	VCount		: in  std_logic_vector(7 downto 0);
+	Audio_PWM	: out std_logic_vector(7 downto 0));
 end audio;
 
 architecture rtl of audio is
@@ -48,10 +49,11 @@ V16 <= Vcount(4);
 V8 <= Vcount(3);
 V4 <= Vcount(2);
 
-C4: process(tones_n, V4, V8, V16, V32, display) is
-begin
-	if tones_n <= '0' then
-		tone_reg <= display;
+process(Clk12) begin
+	if rising_edge(clk12) then	
+		if tones_n <= '0' then
+			tone_reg <= display;
+		end if;
 	end if;
 end process;
 
@@ -61,7 +63,5 @@ tone_V16 <= tone_reg(2) and V16;
 tone_V32 <= tone_reg(3) and V32;
 
 audio_pwm <= tone_V4 & '0' & tone_V8 & '0' & tone_V16 & '0' & tone_V32 & '0';
-
-
 
 end rtl;
