@@ -103,7 +103,7 @@ localparam CONF_STR = {
 	"H0O2,Orientation,Vert,Horz;",
 	"O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",  
 	"-;",
-	"OH,Control,Buttons,Paddle;",
+	"OHI,Control,Buttons,Analog Stick,Paddle;",
 	"-;",
 	"OAB,Language,English,German,French,Spanish;",
 	"OC,Balls,3,5;",
@@ -124,13 +124,13 @@ wire  [1:0] buttons;
 wire        forced_scandoubler;
 wire        direct_video;
 
-
 wire        ioctl_download;
 wire        ioctl_wr;
 wire [24:0] ioctl_addr;
-wire [7:0] ioctl_data;
+wire  [7:0] ioctl_data;
 
 wire [10:0] ps2_key;
+wire  [7:0] paddle;
 //wire [24:0] ps2_mouse;
 
 wire [15:0] joystick_0, joystick_1;
@@ -149,6 +149,7 @@ hps_io #(.STRLEN(($size(CONF_STR)>>3) )) hps_io
 	.joystick_1(joystick_1),
 
 	.joystick_analog_0(joya),
+	.paddle_0(paddle),
 
 	.buttons(buttons),
 	.status(status),
@@ -294,7 +295,7 @@ super_breakout super_breakout(
 	.Test_I(~status[15]),
 	.Enc_A(use_io ? USER_IN[1] : steer0[1]),
 	.Enc_B(use_io ? USER_IN[0] : steer0[0]),
-	.Paddle(status[17] ? (joya ^ 8'h80) : 8'h00),
+	.Paddle(status[17] ? (joya ^ 8'h80) : status[18] ? paddle : 8'h00),
 	.Lamp1_O(),
 	.Lamp2_O(),
 	.hs_O(hs),
